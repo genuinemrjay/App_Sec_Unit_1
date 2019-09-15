@@ -17,7 +17,7 @@ main.o: main.c
 	$(CC) $(CFLAGS) -c main.c
 
 prog: dictionary.o spell.o main.o
-	$(CC) $(CFLAGS) -o spell_check dictionary.o spell.o main.o
+	$(CC) $(CFLAGS) -o $@ spell_check dictionary.o spell.o main.o
 
 clean:
 	$(RM) count *.o *~
