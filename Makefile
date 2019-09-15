@@ -11,7 +11,7 @@ spell.o: spell.c
 
 prog: dictionary.o spell.o
 	$(CC) $(CFLAGS) -o spell_check dictionary.o spell.o
-=======
+
 prog: dictionary.o spell.o
 	$(CC) $(CFLAGS) -o spell_check dictionary.o spell.o
 
