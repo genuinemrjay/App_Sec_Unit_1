@@ -9,11 +9,11 @@ dictionary.o: dictionary.c
 spell.o: spell.c
 	$(CC) $(CFLAGS) -c spell.c
 
-prog: dictionary.o spell.o
-	$(CC) $(CFLAGS) -o spell_check dictionary.o spell.o
+main.o: main.c
+	$(CC) $(CFLAGS) -c main.c
 
-prog: dictionary.o spell.o
-	$(CC) $(CFLAGS) -o spell_check dictionary.o spell.o
+prog: dictionary.o spell.o main.o
+	$(CC) $(CFLAGS) -o spell_check dictionary.o spell.o main.o
 
 clean:
 	$(RM) count *.o *~
