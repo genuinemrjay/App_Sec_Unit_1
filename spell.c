@@ -1,3 +1,138 @@
-#include <check.h>
-#include "dictionary.h"
+/****************************************************************************
+ * spell.c
+ *
+ * Application Security, Assignment 1
+ *
+ * Adapted from code written by Ben Halperin
+ ***************************************************************************/
+#include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
+#include <stdbool.h>
+#include "dictionary.h"
+/**
+ * Loads dictionary into memory.  Returns true if successful else false.
+ */
+bool load_dictionary(const char* dictionary_file, hashmap_t hashtable[]) {
+  // initialize values in hash table
+  for(int i = 0; i < HASH_SIZE; i++) {
+      hashtable[i] = NULL;
+  }
+  // open the dictionary_file text file.
+  FILE* fp;
+  fp = fopen(dictionary_file, "r");
+  // if dictionary file is null, return false
+  if (fp == NULL) {
+      printf("Failed to load the dictionary file!");
+      return false;
+  }
+  // loop through file until EOF
+  char buff[LENGTH+1];
+  while (fscanf(fp, "%s", buff) > 0) {
+      // allocate memory
+      node* new_node = malloc(sizeof(node));
+      // null ptr
+      new_node->next = NULL;
+      // copy word value to new node
+      strcpy(new_node->word, buff);
+      // get bucket value of word
+      int bucket = hash_function(new_node->word);
+      // if the first node added
+      if (hashtable[bucket] == NULL) {
+          hashtable[bucket] = new_node;
+      }
+      // point to the next node in linked list
+      else {
+          new_node->next = hashtable[bucket];
+          hashtable[bucket] = new_node;
+      }
+  }
+  // close the file
+  fclose(fp);
+  // return true
+  return true;
+}
+/**
+ * Returns true if word is in dictionary else false.
+ */
+bool check_word(const char* word, hashmap_t hashtable[]){
+  // word and word length variables
+  int word_len = strlen(word);
+  char word_lwr[LENGTH+1];
+  // convert word to lowercase
+  for (int i = 0; i < word_len; i++) {
+      if(isupper(word[i])){
+          word_lwr[i] = tolower(word[i]) ;
+      }
+      else{
+          word_lwr[i] = word[i];
+      }
+  }
+  // add null character to end of char
+  word_lwr[word_len] = '\0';
+  // get bucket value of word
+  int bucket = hash_function(word_lwr);
+  // cursor set to first node in bucket
+  node* cursor = hashtable[bucket];
+  // compare each word stored in each node to word_lwr
+  while (cursor != NULL){
+      // word is the same, return true
+      if (strcmp(word_lwr, cursor->word) == 0){
+          return true;
+      }
+      cursor = cursor->next;
+  }
+  // word is not the same
+  return false;
+}
+/**
+ * Array misspelled is populated with words that are misspelled. Returns the length of misspelled.
+ */
+int check_words(FILE* fp, hashmap_t hashtable[], char * misspelled[]) {
+  // variables
+  int num_misspelled = 0;
+  int index = 0;
+  char word[LENGTH+1];
+  // file failed to open
+  if (fp == NULL){
+      printf("Could not open file %s.\n", fp);
+      return 1;
+  }
+  // spell-check words
+  for (int c = fgetc(fp); c != EOF; c = fgetc(fp)){
+    // if alphabetical characters or apostrophe
+    if (isalpha(c) || (c == '\'' && index > 0)){
+        // append character to word
+        word[index] = c;
+        index++;
+        // ignore strings too long to be words
+        if (index > LENGTH){
+            while ((c = fgetc(fp)) != EOF && isalpha(c));
+            // reset index
+            index = 0;
+        }
+    }
+    // if word contains numbers
+    else if (isdigit(c)){
+        while ((c = fgetc(fp)) != EOF && isalnum(c));
+        // reset index
+        index = 0;
+    }
+    // handle found word
+    else if (index > 0){
+        // null terminate on word
+        word[index] = '\0';
+        // check spelling
+        bool misspelled = !check_word(word, hashtable);
+        // print misspelled word
+        if (misspelled){
+            printf("%s\n", word);
+            // increment number misspelled
+            num_misspelled++;
+        }
+        // prepare for next word
+        index = 0;
+    }
+  }
+  return num_misspelled;
+}
