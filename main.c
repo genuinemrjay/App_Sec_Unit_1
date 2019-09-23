@@ -13,16 +13,33 @@
 //#define DICTIONARY "wordlist.txt"
 #define TESTDICT "test_worlist.txt"
 
-int main(int argc, char* argv[])
-{
+int main(int argc, char* argv[]){
   // check for correct number of args
    if (argc != 2 && argc != 3){
        printf("Usage: spell_check <dictionary_file> <text_file>\n");
        return 1;
    }
+  // initialize hashmap and load dictionary values
   hashmap_t hashtable[HASH_SIZE];
   load_dictionary(argv[1], hashtable);
+
+  // initialize mispelled
   char *misspelled[MAX_MISSPELLED];
+
+  // open test file and check spelling
   FILE *fp = fopen("test1.txt", "r");
   int num_misspelled = check_words(fp, hashtable, misspelled);
+  printf("%d total misspelled words \n", num_misspelled);
+
+  // free memory of hashtable
+  for (int i = 0; i < HASH_SIZE;i++) {
+       node* cursor = hashtable[i];
+       while (cursor != NULL){
+           // use temp pointer, move cursor to the next node and free memory
+           node* temp = cursor;
+           cursor = cursor->next;
+           free(temp);
+       }
+   }
+   free(misspelled[MAX_MISSPELLED]);
 }
