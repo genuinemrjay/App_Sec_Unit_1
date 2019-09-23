@@ -10,21 +10,35 @@
 #include <string.h>
 #include <stdbool.h>
 #include "dictionary.h"
+#include <sys/stat.h>
+
+// check for valid input file
+int file_isreg(const char *path) {
+    struct stat st;
+    if (stat(path, &st) < 0)
+        return -1;
+    return S_ISREG(st.st_mode);
+}
 /**
  * Loads dictionary into memory.  Returns true if successful else false.
  */
 bool load_dictionary(const char* dictionary_file, hashmap_t hashtable[]) {
-  // initialize null values in hash table
-  for(int i = 0; i < HASH_SIZE; i++) {
-      hashtable[i] = NULL;
-  }
-  // open the dictionary_file text file.
   FILE* fp;
-  fp = fopen(dictionary_file, "r");
+  // validate input file
+  if (file_isreg(dictionary_file)){
+    // open the dictionary_file text file.
+    fp = fopen(dictionary_file, "r");
+  }
+
   // return false if file opening failed
   if (fp == NULL) {
       printf("Failed to load the dictionary file!");
       return false;
+  }
+  // initialize null values in hash table
+
+  for(int i = 0; i < HASH_SIZE; i++) {
+      hashtable[i] = NULL;
   }
   // loop through file until EOF
   char buff[LENGTH+1];
