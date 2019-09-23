@@ -14,14 +14,14 @@
  * Loads dictionary into memory.  Returns true if successful else false.
  */
 bool load_dictionary(const char* dictionary_file, hashmap_t hashtable[]) {
-  // initialize values in hash table
+  // initialize null values in hash table
   for(int i = 0; i < HASH_SIZE; i++) {
       hashtable[i] = NULL;
   }
   // open the dictionary_file text file.
   FILE* fp;
   fp = fopen(dictionary_file, "r");
-  // if dictionary file is null, return false
+  // return false if file opening failed
   if (fp == NULL) {
       printf("Failed to load the dictionary file!");
       return false;
@@ -31,7 +31,7 @@ bool load_dictionary(const char* dictionary_file, hashmap_t hashtable[]) {
   while (fscanf(fp, "%s", buff) > 0) {
       // allocate memory
       node* new_node = malloc(sizeof(node));
-      // null ptr
+      // null ptr to next
       new_node->next = NULL;
       // copy word value to new node
       strcpy(new_node->word, buff);
@@ -41,7 +41,7 @@ bool load_dictionary(const char* dictionary_file, hashmap_t hashtable[]) {
       if (hashtable[bucket] == NULL) {
           hashtable[bucket] = new_node;
       }
-      // point to the next node in linked list
+      // or add to next node
       else {
           new_node->next = hashtable[bucket];
           hashtable[bucket] = new_node;
@@ -80,9 +80,10 @@ bool check_word(const char* word, hashmap_t hashtable[]){
       if (strcmp(word_lwr, cursor->word) == 0){
           return true;
       }
+      // move cursor to next node
       cursor = cursor->next;
   }
-  // word is not the same
+  // else return false
   return false;
 }
 /**
@@ -93,34 +94,32 @@ int check_words(FILE* fp, hashmap_t hashtable[], char * misspelled[]) {
   int num_misspelled = 0;
   int index = 0;
   char word[LENGTH+1];
-  // file failed to open
+  // exit if file opening failed
   if (fp == NULL){
       printf("Could not open file %s.\n", fp);
       return 1;
   }
   // spell-check words
   for (int c = fgetc(fp); c != EOF; c = fgetc(fp)){
-    // if alphabetical characters or apostrophe
+    // if alpha characters or apostrophe
     if (isalpha(c) || (c == '\'' && index > 0)){
         // append character to word
         word[index] = c;
         index++;
-        // ignore strings too long to be words
+        // ignore values longer than length
         if (index > LENGTH){
             while ((c = fgetc(fp)) != EOF && isalpha(c));
-            // reset index
             index = 0;
         }
     }
     // if word contains numbers
     else if (isdigit(c)){
         while ((c = fgetc(fp)) != EOF && isalnum(c));
-        // reset index
-        index = 0;
+          index = 0;
     }
     // handle found word
     else if (index > 0){
-        // null terminate on word
+        // add null terminate on word
         word[index] = '\0';
         // check spelling
         bool misspelled = !check_word(word, hashtable);
@@ -130,9 +129,9 @@ int check_words(FILE* fp, hashmap_t hashtable[], char * misspelled[]) {
             // increment number misspelled
             num_misspelled++;
         }
-        // prepare for next word
         index = 0;
     }
   }
+  fclose(fp);
   return num_misspelled;
 }
