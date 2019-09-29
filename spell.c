@@ -21,13 +21,14 @@ bool load_dictionary(const char* dictionary_file, hashmap_t hashtable[]) {
   if (strlen(dictionary_file) > 35){fputs ("File error",stderr); exit (1);}
 
   // variables
-  FILE* fp;
-  long lSize;
-  char * buffer;
-  node * new_node;
-  size_t result;
-  char word[LENGTH];
+  FILE* fp = NULL;
+  long lSize = 0;
+  char * buffer = 0;
+  node * new_node = NULL;
+  size_t result = 0;
+  char word[LENGTH+1] = {0};
   int index = 0;
+  char c = 0;
 
   // open file
   fp = fopen(dictionary_file, "r");
@@ -47,6 +48,7 @@ bool load_dictionary(const char* dictionary_file, hashmap_t hashtable[]) {
   // copy the file into the buffer:
   result = fread (buffer,1,lSize,fp);
   if (result != lSize) {fputs ("Reading error",stderr); exit (3);}
+  result = 0;
 
   // close the file
   fclose(fp);
@@ -60,9 +62,9 @@ bool load_dictionary(const char* dictionary_file, hashmap_t hashtable[]) {
   for (int i = 0; i < lSize; i++){
 
     // character
-    char c = (char)buffer[i];
+    c = (char)buffer[i];
 
-    if (index <= LENGTH) {
+    if (index < LENGTH) {
       // if valid character value
       if (isalpha(c) || c == '\''){
         // append character to word
@@ -71,12 +73,11 @@ bool load_dictionary(const char* dictionary_file, hashmap_t hashtable[]) {
       }
 
       // if a new line or carriage return
-      else if (c == '\n' || c == '\r') {
+      else {
         // add null terminate on word
         word[index] = '\0';
         // allocate memory
         new_node = malloc (sizeof(char*)*LENGTH+1);
-        //new_node->next = malloc (sizeof(char)*LENGTH+1);
         // null ptr to next
         new_node->next = NULL;
         // copy word value to new node
@@ -109,17 +110,16 @@ bool load_dictionary(const char* dictionary_file, hashmap_t hashtable[]) {
  * Returns true if word is in dictionary else false.
  */
 bool check_word(const char* word, hashmap_t hashtable[]){
-
     // word and word length variables
     int word_len = strlen(word);
-    char word_lwr[LENGTH];
+    char word_lwr[LENGTH] = {0};
 
     // return false if word longer than max allowed
     if (word_len > LENGTH){
       return false;
     }
 
-    for (int i = 0; i <= word_len; i++) {
+    for (int i = 0; i < word_len; i++) {
 
       if (isalpha(word[i])){
         word_lwr[i] = tolower(word[i]);
@@ -157,10 +157,11 @@ int check_words(FILE* fp, hashmap_t hashtable[], char * misspelled[]) {
     if (fp == NULL) {fputs ("File error",stderr); exit (1);}
 
     // variables
-    long lSize;
-    char * buffer;
-    size_t result;
+    long lSize = 0;
+    char * buffer = 0;
+    size_t result = 0;
     int index = 0;
+    char c = 0;
 
     // obtain file size:
     fseek (fp , 0 , SEEK_END);
@@ -174,18 +175,19 @@ int check_words(FILE* fp, hashmap_t hashtable[], char * misspelled[]) {
     // copy the file into the buffer:
     result = fread (buffer,1,lSize,fp);
     if (result != lSize) {fputs ("Reading error",stderr); exit (3);}
+    result = 0;
 
     // close the file
     fclose(fp);
 
     int num_misspelled = 0;
-    char word[LENGTH+1];
+    char word[LENGTH+1] = {0};
 
     // for each character in the file
     for (int i = 0; i < lSize; i++){
 
       // character
-      char c = (char)buffer[i];
+      c = (char)buffer[i];
 
       if (isalpha(c) || ispunct(c) || isdigit(c)){
         if (index <= LENGTH){
@@ -218,7 +220,7 @@ int check_words(FILE* fp, hashmap_t hashtable[], char * misspelled[]) {
     }
     // free memory
     free (buffer);
+
     // return number misspelled
     return num_misspelled;
   }
-
